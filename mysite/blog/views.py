@@ -1,46 +1,63 @@
-from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from typing import Any
+
+from django.core.mail import send_mail
+from django.db.models.query import QuerySet
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
+from django.views.generic import DetailView, ListView
 
 from .forms import EmailPostForm
 from .models import Post
 
 
-def post_list(request) -> HttpResponse:
-    post_list = Post.published.all()
-
-    paginator = Paginator(post_list, 3)
-    page_number = request.GET.get("page", 1)
-    try:
-        posts = paginator.page(page_number)
-    except EmptyPage:
-        posts = paginator.page(paginator.num_pages)
-    except PageNotAnInteger:
-        posts = paginator.page(1)
-
-    return render(request, "blog/post/list.html", {"posts": posts})
+class PostListView(ListView):
+    queryset = Post.published.all()
+    context_object_name = "posts"
+    paginate_by = 3
+    template_name = "blog/post/list.html"
 
 
-def post_detail(request, year, month, day, post) -> HttpResponse:
-    post = get_object_or_404(
-        Post,
-        status=Post.Status.PUBLISHED,
-        slug=post,
-        publish__year=year,
-        publish__month=month,
-        publish__day=day,
-    )
-    return render(request, "blog/post/detail.html", {"post": post})
+class PostDetailView(DetailView):
+    model = Post
+    template_name = "blog/post/detail.html"
+    context_object_name = "post"
+
+    def get_queryset(self) -> QuerySet[Any]:
+        return Post.published.all()
+
+    def get_object(self, queryset=None) -> Any:
+        print(self.kwargs)
+        year, month, day, post_slug = (
+            self.kwargs.get("year"),
+            self.kwargs.get("month"),
+            self.kwargs.get("day"),
+            self.kwargs.get("post"),
+        )
+        queryset = queryset or self.get_queryset()
+        return get_object_or_404(
+            queryset,
+            publish__year=year,
+            publish__month=month,
+            publish__day=day,
+            slug=post_slug,
+        )
 
 
-# TODO доделать функцию
 def post_share(request, post_id) -> HttpResponse:
     post = get_object_or_404(Post, id=post_id, status=Post.Status.PUBLISHED)
+    sent = False
 
     if request.method == "POST":
         form = EmailPostForm(request.POST)
         if form.is_valid():
             cd = form.cleaned_data
+            post_url = request.build_absolute_uri(post.get_absolute_url())
+            subject = f"{cd['name']} рекомендует вам прочитать {post.title}"
+            message = f"Прочитай {post.title} по ссылке {post_url}\n\n{cd['name']} прокомментировал: {cd['comments']}"
+            send_mail(subject, message, "your_account@gmail.com", [cd["to"]])
+            sent = True
     else:
         form = EmailPostForm()
-    return render(request, "blog/post/share.html", {"post": post, "form": form})
+    return render(
+        request, "blog/post/share.html", {"post": post, "form": form, "sent": sent}
+    )

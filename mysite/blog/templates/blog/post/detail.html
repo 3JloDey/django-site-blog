@@ -4,6 +4,9 @@
 {% endblock title %}
 {% block content %}
     <h1>{{ post.title }}</h1>
-    <p class="date">Published {{ post.publish|date:"d.m.Y H:i:s" }} by {{ post.author }}</p>
+    <p class="date">Опубликованно {{ post.publish|date:"d.m.Y H:i:s" }} от {{ post.author }}</p>
     {{ post.body|linebreaks }}
+    <p>
+        <a href="{% url "blog:post_share" post.id %}">Поделиться этим постом</a>
+    </p>
 {% endblock content %}
