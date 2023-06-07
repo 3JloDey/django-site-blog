@@ -1,5 +1,7 @@
 from django import forms
 
+from .models import Comment
+
 
 class EmailPostForm(forms.Form):
     name = forms.CharField(max_length=25)
@@ -7,14 +9,8 @@ class EmailPostForm(forms.Form):
     to = forms.EmailField()
     comments = forms.CharField(required=False, widget=forms.Textarea)
 
-    labels = {
-        "name": "Имя",
-        "email": "E-mail",
-        "to": "Кому",
-        "comments": "Комментарий",
-    }
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        for label in self.labels:
-            self.fields[label].label = self.labels[label]
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ["name", "email", "body"]

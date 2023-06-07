@@ -3,10 +3,8 @@
 <html lang="en">
   <head>
     <title>
-      {% comment %} <meta name="description" content="This is a blog about various topics.">
-      <meta name="keywords" content="django, html, web development"> {% endcomment %}
       {% block title %}
-        Стандарный Заголовок
+        Base Title
       {% endblock title %}
     </title>
     <link href="{% static "css/blog.css" %}" rel="stylesheet">
@@ -17,8 +15,8 @@
       {% endblock content %}
     </div>
     <div id="sidebar">
-      <h2>Мой блог</h2>
-      <p>Это мой блог.</p>
+      <h2>My blog</h2>
+      <p>This is my blog</p>
     </div>
   </body>
 </html>
