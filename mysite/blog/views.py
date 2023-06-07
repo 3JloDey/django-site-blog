@@ -26,7 +26,6 @@ class PostDetailView(DetailView):
         return Post.published.all()
 
     def get_object(self, queryset=None) -> Any:
-        print(self.kwargs)
         year, month, day, post_slug = (
             self.kwargs.get("year"),
             self.kwargs.get("month"),
