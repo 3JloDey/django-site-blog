@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
+from taggit.managers import TaggableManager
 
 
 class PublishedManager(models.Manager):
@@ -13,7 +14,6 @@ class Post(models.Model):
     class Status(models.TextChoices):
         DRAFT = "DF", "Draft"
         PUBLISHED = "PB", "Published"
-
     title = models.CharField(max_length=250)
     slug = models.SlugField(max_length=250, unique_for_date="publish")
     author = models.ForeignKey(
@@ -28,6 +28,7 @@ class Post(models.Model):
     )
 
     objects = models.Manager()
+    tags = TaggableManager()
     published = PublishedManager()
 
     class Meta:
@@ -58,4 +59,4 @@ class Comment(models.Model):
         indexes = [models.Index(fields=["created"])]
 
     def __str__(self) -> str:
-        return f"Комментарий {self.name} в {self.post}"
+        return f"Comment {self.name} in {self.post}"
